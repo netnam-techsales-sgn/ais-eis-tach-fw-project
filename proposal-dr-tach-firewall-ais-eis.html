@@ -1,0 +1,1514 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Proposal DR và tách Firewall AIS/EIS</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #5d6d82;
+      --line: #d9e1ea;
+      --soft: #f6f8fb;
+      --blue: #235ea8;
+      --teal: #168c83;
+      --gold: #b27b17;
+      --pink: #b54f8c;
+      --red: #c54040;
+      --green: #277a50;
+      --purple: #7561b8;
+      --white: #ffffff;
+      --shadow: 0 14px 34px rgba(23, 32, 51, 0.10);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #ffffff;
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 292px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 24px 18px;
+      border-right: 1px solid var(--line);
+      background: #fbfcfe;
+      overflow-y: auto;
+    }
+
+    .brand {
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 18px;
+    }
+
+    .brand .label {
+      color: var(--teal);
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .brand h1 {
+      margin: 8px 0 8px;
+      font-size: 22px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav-title {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 16px 0 8px;
+    }
+
+    .toc {
+      display: grid;
+      gap: 4px;
+    }
+
+    .toc a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .toc a:hover {
+      background: #edf5f4;
+      color: var(--teal);
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 560px;
+      display: grid;
+      align-items: end;
+      padding: 64px 54px 42px;
+      color: #ffffff;
+      overflow: hidden;
+      background: #0b2545;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(90deg, rgba(11, 37, 69, 0.94) 0%, rgba(11, 37, 69, 0.76) 42%, rgba(11, 37, 69, 0.38) 100%),
+        url("assets/proposal/so-do-luan-ly-de-xuat-moi.png");
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.02);
+    }
+
+    .hero-content {
+      position: relative;
+      max-width: 980px;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #bff2e8;
+      font-weight: 800;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 34px;
+      height: 3px;
+      background: #bff2e8;
+      border-radius: 999px;
+    }
+
+    .hero h2 {
+      margin: 0;
+      max-width: 900px;
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 18px 0 0;
+      max-width: 760px;
+      color: #e8f1fb;
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.10);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .section {
+      padding: 48px 54px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section:nth-child(even) {
+      background: #fbfcfe;
+    }
+
+    .section-head {
+      max-width: 960px;
+      margin-bottom: 24px;
+    }
+
+    .section-kicker {
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+    }
+
+    h2.section-title {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 920px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 18px;
+      box-shadow: 0 8px 22px rgba(23, 32, 51, 0.06);
+    }
+
+    .metric .number {
+      color: var(--blue);
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .metric .text {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .callout {
+      border-left: 5px solid var(--teal);
+      background: #eef8f6;
+      padding: 18px 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .callout.warning {
+      border-left-color: var(--gold);
+      background: #fff7e8;
+    }
+
+    .callout.danger {
+      border-left-color: var(--red);
+      background: #fff1f1;
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 20px;
+      box-shadow: 0 8px 22px rgba(23, 32, 51, 0.05);
+    }
+
+    .panel h3 {
+      margin: 0 0 10px;
+      font-size: 19px;
+      line-height: 1.25;
+    }
+
+    .panel p {
+      color: var(--muted);
+      margin: 0 0 12px;
+    }
+
+    ul, ol {
+      margin-top: 8px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    .figure {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      margin: 18px 0 28px;
+    }
+
+    .figure img {
+      width: 100%;
+      background: #ffffff;
+      cursor: zoom-in;
+    }
+
+    .caption {
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      background: #fbfcfe;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      grid-template-rows: auto minmax(0, 1fr);
+      background: rgba(8, 15, 28, 0.94);
+      color: #ffffff;
+    }
+
+    .lightbox.open {
+      display: grid;
+    }
+
+    .lightbox-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(8, 15, 28, 0.86);
+    }
+
+    .lightbox-title {
+      min-width: 0;
+      font-size: 14px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .lightbox-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .lightbox button {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.10);
+      color: #ffffff;
+      min-width: 38px;
+      height: 36px;
+      padding: 0 11px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .lightbox button:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .lightbox-stage {
+      min-height: 0;
+      overflow: auto;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+    }
+
+    .lightbox-stage img {
+      max-width: 100%;
+      max-height: calc(100vh - 104px);
+      width: auto;
+      height: auto;
+      transform-origin: center center;
+      background: #ffffff;
+      border-radius: 6px;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      margin: 16px 0 24px;
+      box-shadow: 0 8px 22px rgba(23, 32, 51, 0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 13px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #edf2f8;
+      color: #203047;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .tag.transit {
+      color: #075f58;
+      background: #dff5f1;
+    }
+
+    .tag.core {
+      color: #174b91;
+      background: #e5effc;
+    }
+
+    .tag.policy {
+      color: #7a4e00;
+      background: #fff0c9;
+    }
+
+    .topology {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(120px, 0.42fr) minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      margin: 24px 0;
+    }
+
+    .site-box {
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 18px;
+      min-height: 220px;
+      box-shadow: 0 8px 22px rgba(23, 32, 51, 0.05);
+    }
+
+    .site-box.ais {
+      border-color: rgba(117, 97, 184, 0.35);
+      background: #f4f1ff;
+    }
+
+    .site-box.eis {
+      border-color: rgba(178, 123, 23, 0.35);
+      background: #fff8e7;
+    }
+
+    .site-box h3 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    .device-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .device {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+      font-weight: 800;
+      color: #253247;
+    }
+
+    .device small {
+      display: block;
+      color: var(--muted);
+      font-weight: 700;
+      margin-top: 3px;
+    }
+
+    .link-stack {
+      display: grid;
+      gap: 12px;
+      justify-items: stretch;
+    }
+
+    .link-item {
+      min-height: 74px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 2px dashed var(--teal);
+      color: #075f58;
+      background: #effaf8;
+      border-radius: 8px;
+      padding: 12px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .link-item.core {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #eef5ff;
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 14px;
+      counter-reset: phase;
+      margin-top: 22px;
+    }
+
+    .phase {
+      position: relative;
+      display: grid;
+      grid-template-columns: 84px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 18px;
+      box-shadow: 0 8px 22px rgba(23, 32, 51, 0.05);
+      counter-increment: phase;
+    }
+
+    .phase::before {
+      content: counter(phase);
+      display: grid;
+      place-items: center;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .phase h3 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .phase ul {
+      columns: 2;
+      column-gap: 28px;
+      margin-bottom: 0;
+    }
+
+    .flow-steps {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0 4px;
+    }
+
+    .flow-step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 14px;
+      min-height: 116px;
+      position: relative;
+      box-shadow: 0 8px 22px rgba(23, 32, 51, 0.05);
+    }
+
+    .flow-step .num {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--teal);
+      color: #ffffff;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .flow-step strong {
+      display: block;
+      line-height: 1.25;
+    }
+
+    .flow-step span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .two-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .option {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 18px;
+      box-shadow: 0 8px 22px rgba(23, 32, 51, 0.05);
+    }
+
+    .option h3 {
+      margin: 0 0 8px;
+      font-size: 19px;
+    }
+
+    .footer {
+      padding: 28px 54px;
+      background: #0b2545;
+      color: #dfeaf7;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .print-btn {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 10px 12px;
+      font-weight: 900;
+      color: var(--blue);
+      cursor: pointer;
+      margin-top: 18px;
+    }
+
+    .print-btn:hover {
+      background: #eef5ff;
+    }
+
+    @media (max-width: 1120px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .toc {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero,
+      .section,
+      .footer {
+        padding-left: 28px;
+        padding-right: 28px;
+      }
+
+      .summary-grid,
+      .flow-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .topology {
+        grid-template-columns: 1fr;
+      }
+
+      .phase ul {
+        columns: 1;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        min-height: 520px;
+        padding: 42px 18px 28px;
+      }
+
+      .section,
+      .footer {
+        padding: 34px 18px;
+      }
+
+      .toc,
+      .summary-grid,
+      .content-grid,
+      .two-options,
+      .flow-steps {
+        grid-template-columns: 1fr;
+      }
+
+      .phase {
+        grid-template-columns: 1fr;
+      }
+
+      .phase::before {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+      }
+
+      h2.section-title {
+        font-size: 26px;
+      }
+    }
+
+    @media print {
+      .layout {
+        display: block;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .hero {
+        min-height: auto;
+        color: var(--ink);
+        background: #ffffff;
+        padding: 24px 0;
+      }
+
+      .hero::before {
+        display: none;
+      }
+
+      .hero p,
+      .pill {
+        color: var(--ink);
+      }
+
+      .section {
+        padding: 24px 0;
+        page-break-inside: avoid;
+      }
+
+      .figure,
+      .panel,
+      .metric,
+      .phase,
+      .flow-step,
+      .option {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="label">Proposal</div>
+        <h1>DR và tách Firewall AIS/EIS</h1>
+        <p>Mô hình mới với 2 firewall MX250, Transit /30 và dark fiber Core-to-Core.</p>
+      </div>
+      <div class="nav-title">Mục lục</div>
+      <nav class="toc" aria-label="Mục lục proposal">
+        <a href="#muc-tieu">1. Mục tiêu</a>
+        <a href="#hien-trang">2. Hiện trạng</a>
+        <a href="#de-xuat">3. Đề xuất mới</a>
+        <a href="#nguyen-tac">4. Nguyên tắc</a>
+        <a href="#route">5. Route</a>
+        <a href="#nat">6. NAT</a>
+        <a href="#kich-ban">7. Kịch bản áp dụng</a>
+        <a href="#dr-eis">8. DR EIS down</a>
+        <a href="#timeline">9. Timeline</a>
+        <a href="#vlan84">10. VLAN 84</a>
+        <a href="#ket-luan">11. Kết luận</a>
+      </nav>
+      <button class="print-btn" type="button" onclick="window.print()">In hoặc xuất PDF</button>
+    </aside>
+
+    <main class="main">
+      <header class="hero">
+        <div class="hero-content">
+          <div class="eyebrow">NetNam proposal</div>
+          <h2>Phương án DR và tách Firewall cho AIS/EIS</h2>
+          <p>Tổng hợp hiện trạng, mô hình đề xuất, phương án thực hiện và timeline triển khai step-by-step theo thiết kế có Transit /30 giữa hai firewall và dark fiber giữa hai core switch.</p>
+          <div class="hero-meta">
+            <span class="pill">Default gateway trên firewall</span>
+            <span class="pill">EIS MX250</span>
+            <span class="pill">AIS MX250</span>
+            <span class="pill">DR cho DIA, VPN và firewall down</span>
+          </div>
+        </div>
+      </header>
+
+      <section id="muc-tieu" class="section">
+        <div class="section-head">
+          <div class="section-kicker">1. Mục tiêu tài liệu</div>
+          <h2 class="section-title">Làm rõ hiện trạng, mô hình mới và cách vận hành DR</h2>
+          <p class="lead">Tài liệu mô tả hiện trạng hệ thống firewall đang phục vụ chung cho AIS và EIS, đồng thời đề xuất mô hình tách thành 2 firewall riêng biệt, bổ sung tuyến Transit giữa hai firewall và tuyến dark fiber giữa hai core switch để phục vụ các kịch bản dự phòng.</p>
+        </div>
+
+        <div class="summary-grid">
+          <div class="metric">
+            <div class="number">2</div>
+            <div class="text">Firewall MX250 riêng cho AIS và EIS</div>
+          </div>
+          <div class="metric">
+            <div class="number">/30</div>
+            <div class="text">Transit subnet giữa hai firewall</div>
+          </div>
+          <div class="metric">
+            <div class="number">1</div>
+            <div class="text">Dark fiber trunk giữa hai core switch</div>
+          </div>
+          <div class="metric">
+            <div class="number">84</div>
+            <div class="text">VLAN IT_MGMT cần kiểm soát đặc biệt</div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>Mục tiêu chính</strong>
+          Tách kiểm soát firewall cho AIS và EIS, giữ default gateway trên firewall theo yêu cầu khách hàng, và có phương án DR rõ ràng cho cả lỗi DIA/VPN lẫn lỗi firewall down hoàn toàn.
+        </div>
+
+        <div class="content-grid">
+          <div class="panel">
+            <h3>Yêu cầu thiết kế</h3>
+            <ul>
+              <li>Default gateway của các VLAN vẫn đặt trên firewall.</li>
+              <li>Có phương án DR khi lỗi DIA/VPN hoặc khi một firewall down hoàn toàn.</li>
+              <li>Làm rõ trường hợp nào dùng Transit subnet, trường hợp nào dùng dark fiber giữa core switch.</li>
+              <li>Có quy trình thao tác step-by-step khi xảy ra sự cố.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Phạm vi trình bày</h3>
+            <ul>
+              <li>Hiện trạng kết nối vật lý và luận lý.</li>
+              <li>Mô hình đề xuất mới với 2 firewall MX250.</li>
+              <li>Nguyên tắc route, NAT, policy và gateway.</li>
+              <li>Timeline triển khai và kịch bản vận hành DR.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="hien-trang" class="section">
+        <div class="section-head">
+          <div class="section-kicker">2. Hiện trạng</div>
+          <h2 class="section-title">Một firewall MX450 đang phục vụ chung cho AIS và EIS</h2>
+          <p class="lead">Hiện tại hệ thống sử dụng một firewall MX450 làm điểm kiểm soát chính cho cả AIS và EIS. Các VLAN của AIS và EIS được trunk về firewall để đặt default gateway và áp policy.</p>
+        </div>
+
+        <div class="content-grid">
+          <div class="panel">
+            <h3>Mô hình hiện trạng</h3>
+            <ul>
+              <li>Firewall MX450 đặt tại site Mai Chí Thọ.</li>
+              <li>AIS và EIS cùng đi qua firewall hiện hữu để ra Internet/VPN/Cloud.</li>
+              <li>Site Lê Văn Miến có các VLAN EIS.</li>
+              <li>Site Mai Chí Thọ có các VLAN AIS.</li>
+              <li>Khu 36 Thảo Điền gồm Cherry Blossom và Lotus có cả VLAN AIS/EIS.</li>
+              <li>Cloud TPCOMS kết nối qua Internet/VPN S2S.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Điểm hạn chế</h3>
+            <ul>
+              <li>Một firewall phục vụ chung tạo điểm tập trung rủi ro.</li>
+              <li>Policy AIS/EIS chưa được tách biệt vật lý theo từng trường.</li>
+              <li>Khi MX450 gặp sự cố, ảnh hưởng có thể lan rộng đến cả AIS và EIS.</li>
+              <li>DR chưa tách rõ giữa lỗi đường Internet và lỗi firewall.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          <strong>Lưu ý hiện trạng VLAN 84</strong>
+          VLAN 84 là IT_MGMT, xuất hiện ở cả AIS và EIS nên cần kiểm soát đặc biệt khi tách firewall để tránh trùng gateway hoặc routing bất đối xứng.
+        </div>
+
+        <div class="figure">
+          <img src="ais-mo-ta-so-do-ket-noi-vat-ly-hien-huu.png" alt="Sơ đồ kết nối vật lý hiện hữu">
+          <div class="caption">Hình 1. Sơ đồ kết nối vật lý hiện hữu</div>
+        </div>
+
+        <div class="figure">
+          <img src="ais-mo-ta-so-do-ket-noi-luan-ly-hien-huu.png" alt="Sơ đồ kết nối luận lý hiện hữu">
+          <div class="caption">Hình 2. Sơ đồ kết nối luận lý hiện hữu</div>
+        </div>
+      </section>
+
+      <section id="de-xuat" class="section">
+        <div class="section-head">
+          <div class="section-kicker">3. Mô hình đề xuất mới</div>
+          <h2 class="section-title">Tách thành 2 firewall riêng và bổ sung 2 tuyến DR</h2>
+          <p class="lead">Mô hình mới tách firewall hiện hữu thành 2 firewall riêng biệt: Firewall EIS MX250 tại site Lê Văn Miến và Firewall AIS MX250 tại site Mai Chí Thọ. Mỗi firewall có DIA riêng, VPN S2S riêng lên Cloud TPCOMS và làm default gateway cho VLAN của trường tương ứng.</p>
+        </div>
+
+        <div class="topology" aria-label="Tổng quan mô hình đề xuất">
+          <div class="site-box eis">
+            <h3>Site Lê Văn Miến</h3>
+            <div class="device-row">
+              <div class="device">Firewall EIS MX250<small>Gateway chính cho VLAN EIS</small></div>
+              <div class="device">Core Switch EIS<small>Trunk VLAN EIS, port DR core-to-core</small></div>
+              <div class="device">EIS VLAN<small>3, 21, 31, 51, 84, 101, 201, 231</small></div>
+            </div>
+          </div>
+          <div class="link-stack">
+            <div class="link-item">Transit /30<br>Firewall-to-Firewall</div>
+            <div class="link-item core">Dark fiber trunk<br>Core-to-Core</div>
+          </div>
+          <div class="site-box ais">
+            <h3>Site Mai Chí Thọ</h3>
+            <div class="device-row">
+              <div class="device">Firewall AIS MX250<small>Gateway chính cho VLAN AIS</small></div>
+              <div class="device">Core Switch AIS<small>Trunk VLAN AIS, port DR core-to-core</small></div>
+              <div class="device">AIS VLAN<small>1, 20, 30, 50, 59, 70, 84, 100, 200, 230</small></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Thành phần</th>
+                <th>Vai trò chính</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Transit /30 giữa 2 firewall</td>
+                <td>Dùng cho định tuyến dự phòng khi firewall còn sống nhưng lỗi DIA/VPN.</td>
+              </tr>
+              <tr>
+                <td>Dark fiber giữa 2 core switch</td>
+                <td>Dùng để kéo VLAN sang site còn lại khi một firewall down hoàn toàn.</td>
+              </tr>
+              <tr>
+                <td>Trunk Core-Firewall</td>
+                <td>Mang VLAN local lên firewall để đặt default gateway.</td>
+              </tr>
+              <tr>
+                <td>DIA local</td>
+                <td>Đường Internet chính của từng trường.</td>
+              </tr>
+              <tr>
+                <td>VPN S2S Cloud</td>
+                <td>Kết nối AIS/EIS lên Cloud TPCOMS.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="figure">
+          <img src="assets/proposal/so-do-vat-ly-de-xuat-moi.png" alt="Sơ đồ kết nối vật lý đề xuất mới">
+          <div class="caption">Hình 3. Sơ đồ kết nối vật lý đề xuất mới</div>
+        </div>
+
+        <div class="figure">
+          <img src="assets/proposal/so-do-luan-ly-de-xuat-moi.png" alt="Sơ đồ kết nối luận lý đề xuất mới">
+          <div class="caption">Hình 4. Sơ đồ kết nối luận lý đề xuất mới, có Transit /30 giữa hai firewall và dark fiber giữa hai core</div>
+        </div>
+      </section>
+
+      <section id="nguyen-tac" class="section">
+        <div class="section-head">
+          <div class="section-kicker">4. Nguyên tắc thiết kế</div>
+          <h2 class="section-title">Gateway đặt trên firewall và chỉ active một nơi tại một thời điểm</h2>
+          <p class="lead">Default gateway vẫn đặt trên firewall để đáp ứng yêu cầu kiểm soát và áp policy của khách hàng. Mỗi VLAN chỉ được có một gateway active tại một thời điểm.</p>
+        </div>
+
+        <div class="content-grid">
+          <div class="panel">
+            <h3>Nguyên tắc vận hành bình thường</h3>
+            <ul>
+              <li>AIS VLAN dùng Firewall AIS làm gateway chính.</li>
+              <li>EIS VLAN dùng Firewall EIS làm gateway chính.</li>
+              <li>Transit /30 chỉ dùng để route giữa hai firewall, không dùng làm gateway cho user VLAN.</li>
+              <li>Dark fiber giữa hai core switch chỉ enable khi cần DR hoặc theo kịch bản được kiểm soát.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Nguyên tắc chống xung đột</h3>
+            <ul>
+              <li>Không để hai firewall cùng active một gateway IP cho cùng VLAN trong cùng thời điểm.</li>
+              <li>VLAN 84 cần thống nhất gateway active rõ ràng để tránh conflict.</li>
+              <li>Port DR core-to-core nên mặc định shutdown/disable.</li>
+              <li>Chỉ enable port DR theo quy trình vận hành đã phê duyệt.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="route" class="section">
+        <div class="section-head">
+          <div class="section-kicker">5. Default route và static route</div>
+          <h2 class="section-title">Mỗi firewall có route chính và route dự phòng</h2>
+          <p class="lead">Có thể sử dụng static route để đơn giản hóa vận hành. Mỗi firewall có default route chính đi DIA local và default route dự phòng qua Transit sang firewall site còn lại.</p>
+        </div>
+
+        <div class="content-grid">
+          <div class="panel">
+            <h3>Trên Firewall AIS</h3>
+            <ul>
+              <li>Primary default route: đi DIA AIS.</li>
+              <li>Backup default route: đi qua Transit sang Firewall EIS.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Trên Firewall EIS</h3>
+            <ul>
+              <li>Primary default route: đi DIA EIS.</li>
+              <li>Backup default route: đi qua Transit sang Firewall AIS.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          <strong>Lưu ý route dự phòng</strong>
+          Backup route có priority thấp hơn route chính, chỉ áp dụng khi firewall vẫn còn hoạt động, không xử lý được trường hợp firewall down hoàn toàn và cần tránh loop nếu cả hai site cùng mất DIA.
+        </div>
+      </section>
+
+      <section id="nat" class="section">
+        <div class="section-head">
+          <div class="section-kicker">6. Nguyên tắc NAT</div>
+          <h2 class="section-title">Transit subnet là đường định tuyến nội bộ, không phải điểm NAT</h2>
+          <p class="lead">NAT chỉ nên thực hiện tại firewall đang đưa traffic ra Internet để giữ nguyên source subnet gốc khi đi qua Transit, giúp policy và log vẫn rõ ràng theo VLAN/subnet nguồn.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Trạng thái</th>
+                <th>Luồng traffic</th>
+                <th>Firewall thực hiện NAT</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Bình thường</td>
+                <td>AIS subnet ra DIA AIS; EIS subnet ra DIA EIS</td>
+                <td>Firewall local của từng trường</td>
+              </tr>
+              <tr>
+                <td>DIA EIS lỗi, Firewall EIS còn sống</td>
+                <td>EIS subnet đến Firewall EIS, route qua Transit sang Firewall AIS</td>
+                <td>Firewall AIS NAT EIS subnet ra DIA AIS</td>
+              </tr>
+              <tr>
+                <td>DIA AIS lỗi, Firewall AIS còn sống</td>
+                <td>AIS subnet đến Firewall AIS, route qua Transit sang Firewall EIS</td>
+                <td>Firewall EIS NAT AIS subnet ra DIA EIS</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <strong>Khuyến nghị NAT</strong>
+          Không nên NAT trên Transit để tránh double NAT và mất visibility source IP. Firewall đang có DIA hoạt động sẽ NAT cho cả subnet local và subnet từ site đối diện khi chạy DR.
+        </div>
+      </section>
+
+      <section id="kich-ban" class="section">
+        <div class="section-head">
+          <div class="section-kicker">7. Các trường hợp áp dụng mô hình mới</div>
+          <h2 class="section-title">Tách rõ kịch bản dùng Transit và kịch bản dùng Core-to-Core</h2>
+          <p class="lead">Mô hình mới có hai lớp DR. Transit /30 dùng cho lỗi DIA/VPN khi firewall còn hoạt động. Dark fiber Core-to-Core dùng khi một firewall down hoàn toàn và cần kéo VLAN sang firewall còn lại.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tình huống</th>
+                <th>Đường sử dụng</th>
+                <th>Cách xử lý</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>DIA EIS lỗi, Firewall EIS còn sống</td>
+                <td><span class="tag transit">Transit /30</span></td>
+                <td>EIS route qua Firewall AIS, NAT ra DIA AIS.</td>
+              </tr>
+              <tr>
+                <td>DIA AIS lỗi, Firewall AIS còn sống</td>
+                <td><span class="tag transit">Transit /30</span></td>
+                <td>AIS route qua Firewall EIS, NAT ra DIA EIS.</td>
+              </tr>
+              <tr>
+                <td>VPN/Cloud EIS lỗi</td>
+                <td><span class="tag transit">Transit /30</span></td>
+                <td>Route traffic Cloud/VPN EIS sang Firewall AIS nếu policy cho phép.</td>
+              </tr>
+              <tr>
+                <td>VPN/Cloud AIS lỗi</td>
+                <td><span class="tag transit">Transit /30</span></td>
+                <td>Route traffic Cloud/VPN AIS sang Firewall EIS nếu policy cho phép.</td>
+              </tr>
+              <tr>
+                <td>Firewall EIS down hoàn toàn</td>
+                <td><span class="tag core">Dark fiber Core-Core</span></td>
+                <td>Kéo VLAN EIS sang Firewall AIS.</td>
+              </tr>
+              <tr>
+                <td>Firewall AIS down hoàn toàn</td>
+                <td><span class="tag core">Dark fiber Core-Core</span></td>
+                <td>Kéo VLAN AIS sang Firewall EIS.</td>
+              </tr>
+              <tr>
+                <td>VLAN 84 IT_MGMT</td>
+                <td><span class="tag policy">Theo kịch bản</span></td>
+                <td>Chỉ một firewall active gateway VLAN 84 tại một thời điểm.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="dr-eis" class="section">
+        <div class="section-head">
+          <div class="section-kicker">8. Phương án thực hiện</div>
+          <h2 class="section-title">DR khi Firewall EIS down hoàn toàn</h2>
+          <p class="lead">Kịch bản áp dụng khi Firewall EIS tại site Lê Văn Miến gặp sự cố hoàn toàn. Khi đó Transit /30 không còn tác dụng vì firewall đầu EIS đã down, cần dùng dark fiber Core-to-Core để kéo VLAN EIS sang Firewall AIS.</p>
+        </div>
+
+        <div class="content-grid">
+          <div class="panel">
+            <h3>Điều kiện cấu hình sẵn</h3>
+            <ul>
+              <li>Core EIS port DR cấu hình trunk, mặc định shutdown.</li>
+              <li>Core AIS port DR cấu hình trunk, mặc định shutdown.</li>
+              <li>Trunk Core AIS lên Firewall AIS allow thêm VLAN EIS cần DR.</li>
+              <li>Firewall AIS cấu hình sẵn gateway, policy và NAT cho VLAN EIS ở chế độ DR.</li>
+              <li>Uplink Core EIS lên Firewall EIS có thể shutdown/rút cáp khi DR.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Nguyên tắc chuyển đổi</h3>
+            <ul>
+              <li>Không để Firewall EIS và Firewall AIS cùng active gateway EIS.</li>
+              <li>Port DR chỉ enable khi đã cô lập uplink đến firewall lỗi.</li>
+              <li>Kiểm tra gateway, NAT, Internet, VPN/Cloud và log policy sau khi chuyển.</li>
+              <li>Failback phải trả gateway về firewall EIS và shutdown lại port DR.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="flow-steps">
+          <div class="flow-step">
+            <div class="num">1</div>
+            <strong>Xác nhận lỗi</strong>
+            <span>Firewall EIS down hoặc không còn phục vụ gateway ổn định.</span>
+          </div>
+          <div class="flow-step">
+            <div class="num">2</div>
+            <strong>Cô lập uplink</strong>
+            <span>Shutdown/rút uplink từ Core EIS lên Firewall EIS để tránh gateway conflict.</span>
+          </div>
+          <div class="flow-step">
+            <div class="num">3</div>
+            <strong>Enable DR trunk</strong>
+            <span>Enable port DR trên Core EIS và Core AIS.</span>
+          </div>
+          <div class="flow-step">
+            <div class="num">4</div>
+            <strong>Kích hoạt gateway</strong>
+            <span>Xác nhận VLAN EIS trunk qua dark fiber và gateway EIS trên Firewall AIS.</span>
+          </div>
+          <div class="flow-step">
+            <div class="num">5</div>
+            <strong>Kiểm tra dịch vụ</strong>
+            <span>Ping gateway, kiểm tra Internet, VPN/Cloud và policy log trên Firewall AIS.</span>
+          </div>
+        </div>
+
+        <div class="callout">
+          <strong>Failback</strong>
+          Khi Firewall EIS phục hồi, thực hiện failback về mô hình bình thường: đưa gateway về Firewall EIS, shutdown port DR core-to-core, kiểm tra lại traffic local và log firewall.
+        </div>
+      </section>
+
+      <section id="timeline" class="section">
+        <div class="section-head">
+          <div class="section-kicker">9. Timeline step-by-step</div>
+          <h2 class="section-title">Các giai đoạn triển khai mô hình mới</h2>
+          <p class="lead">Timeline dưới đây dùng cho triển khai, kiểm thử và bàn giao vận hành. Các bước có thể điều chỉnh theo lịch cutover thực tế của khách hàng.</p>
+        </div>
+
+        <div class="timeline">
+          <article class="phase">
+            <div>
+              <h3>Giai đoạn 1: Chuẩn bị</h3>
+              <ul>
+                <li>Kiểm tra sơ đồ vật lý hiện hữu.</li>
+                <li>Xác nhận danh sách VLAN AIS/EIS.</li>
+                <li>Xác nhận VLAN 84 dùng chung hay tách riêng.</li>
+                <li>Xác định IP Transit /30 giữa hai firewall.</li>
+                <li>Xác định port trunk giữa core và firewall.</li>
+                <li>Xác định port dark fiber giữa hai core switch.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="phase">
+            <div>
+              <h3>Giai đoạn 2: Cấu hình firewall</h3>
+              <ul>
+                <li>Cấu hình VLAN/gateway local trên Firewall AIS.</li>
+                <li>Cấu hình VLAN/gateway local trên Firewall EIS.</li>
+                <li>Cấu hình Transit /30 giữa hai firewall.</li>
+                <li>Cấu hình static route giữa AIS/EIS.</li>
+                <li>Cấu hình default route chính và backup route.</li>
+                <li>Cấu hình NAT cho subnet local và subnet DR.</li>
+                <li>Cấu hình policy cho traffic local, inter-site, Cloud và Internet.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="phase">
+            <div>
+              <h3>Giai đoạn 3: Cấu hình switch</h3>
+              <ul>
+                <li>Cấu hình trunk Core AIS lên Firewall AIS.</li>
+                <li>Cấu hình trunk Core EIS lên Firewall EIS.</li>
+                <li>Cấu hình port dark fiber giữa hai core switch.</li>
+                <li>Port DR core-to-core mặc định shutdown/disable.</li>
+                <li>Allow VLAN cần DR trên trunk tương ứng.</li>
+                <li>Kiểm tra STP/loop prevention.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="phase">
+            <div>
+              <h3>Giai đoạn 4: Kiểm thử bình thường</h3>
+              <ul>
+                <li>Kiểm tra AIS đi Internet qua DIA AIS.</li>
+                <li>Kiểm tra EIS đi Internet qua DIA EIS.</li>
+                <li>Kiểm tra VPN S2S Cloud AIS.</li>
+                <li>Kiểm tra VPN S2S Cloud EIS.</li>
+                <li>Kiểm tra policy và log trên từng firewall.</li>
+                <li>Kiểm tra VLAN 84 quản trị.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="phase">
+            <div>
+              <h3>Giai đoạn 5: Kiểm thử DR Transit</h3>
+              <ul>
+                <li>Giả lập lỗi DIA EIS.</li>
+                <li>Kiểm tra EIS route qua Transit sang Firewall AIS.</li>
+                <li>Kiểm tra Firewall AIS NAT EIS subnet ra DIA AIS.</li>
+                <li>Thực hiện chiều ngược lại cho AIS.</li>
+                <li>Ghi nhận thời gian chuyển đổi và các rule cần điều chỉnh.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="phase">
+            <div>
+              <h3>Giai đoạn 6: Kiểm thử DR Firewall down</h3>
+              <ul>
+                <li>Giả lập Firewall EIS down.</li>
+                <li>Shutdown uplink Core EIS lên Firewall EIS.</li>
+                <li>Enable dark fiber trunk giữa hai core switch.</li>
+                <li>Kéo VLAN EIS sang Firewall AIS.</li>
+                <li>Kiểm tra gateway, NAT, Internet, VPN/Cloud.</li>
+                <li>Thực hiện failback sau khi khôi phục.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="phase">
+            <div>
+              <h3>Giai đoạn 7: Bàn giao vận hành</h3>
+              <ul>
+                <li>Chốt quy trình failover/failback.</li>
+                <li>Bàn giao bảng port/VLAN/route/NAT/policy.</li>
+                <li>Ghi rõ ai được phép enable port DR.</li>
+                <li>Ghi rõ kiểm tra sau DR.</li>
+                <li>Lưu cấu hình backup và rollback plan.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="vlan84" class="section">
+        <div class="section-head">
+          <div class="section-kicker">10. Lưu ý đặc biệt</div>
+          <h2 class="section-title">VLAN 84 IT_MGMT cần chính sách gateway rõ ràng</h2>
+          <p class="lead">VLAN 84 là IT_MGMT và xuất hiện ở cả hai phía AIS/EIS. Đây là VLAN cần kiểm soát chặt khi tách firewall vì có thể phát sinh gateway conflict hoặc phụ thuộc liên site.</p>
+        </div>
+
+        <div class="two-options">
+          <div class="option">
+            <h3>Phương án 1: Giữ chung VLAN 84</h3>
+            <ul>
+              <li>Chỉ một firewall active gateway VLAN 84 tại một thời điểm.</li>
+              <li>Khi DR phải kiểm soát kỹ gateway conflict.</li>
+              <li>Ít thay đổi IP hiện hữu nhưng phụ thuộc nhiều vào quy trình vận hành.</li>
+            </ul>
+          </div>
+          <div class="option">
+            <h3>Phương án 2: Tách VLAN quản trị</h3>
+            <ul>
+              <li>AIS và EIS có management subnet riêng.</li>
+              <li>Giảm rủi ro conflict gateway.</li>
+              <li>Dễ áp policy và DR hơn.</li>
+              <li>Cần thay đổi IP quản trị hoặc routing liên quan.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout warning">
+          <strong>Khuyến nghị</strong>
+          Nếu khách hàng cho phép, nên tách management subnet trong giai đoạn sau. Nếu chưa thể tách ngay, cần quy định rõ gateway active của VLAN 84 trong từng kịch bản.
+        </div>
+      </section>
+
+      <section id="ket-luan" class="section">
+        <div class="section-head">
+          <div class="section-kicker">11. Kết luận</div>
+          <h2 class="section-title">Mô hình mới linh hoạt hơn và phân tách rõ trách nhiệm DR</h2>
+          <p class="lead">Mô hình mới với 2 firewall riêng, Transit /30 giữa firewall và dark fiber giữa core switch là phương án linh hoạt hơn mô hình hiện hữu.</p>
+        </div>
+
+        <div class="content-grid">
+          <div class="panel">
+            <h3>Cách áp dụng nên chia rõ</h3>
+            <ul>
+              <li>Lỗi DIA/VPN nhưng firewall còn sống: dùng Transit /30.</li>
+              <li>Firewall down hoàn toàn: dùng dark fiber Core-to-Core để kéo VLAN sang firewall còn lại.</li>
+              <li>Default gateway vẫn đặt trên firewall theo yêu cầu khách hàng.</li>
+              <li>NAT thực hiện tại firewall đang đưa traffic ra Internet.</li>
+              <li>VLAN 84 cần kiểm soát đặc biệt để tránh trùng gateway.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Giá trị đạt được</h3>
+            <ul>
+              <li>Tách kiểm soát AIS và EIS theo từng firewall riêng.</li>
+              <li>Giảm phụ thuộc vào một firewall tập trung.</li>
+              <li>Có tuyến DR phù hợp cho từng loại sự cố.</li>
+              <li>Giữ được yêu cầu kiểm soát policy tại firewall.</li>
+              <li>Có timeline triển khai và bàn giao vận hành rõ ràng.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Proposal DR và tách Firewall AIS/EIS</span>
+        <span>NetNam</span>
+      </footer>
+    </main>
+  </div>
+
+  <div class="lightbox" id="imageLightbox" aria-hidden="true">
+    <div class="lightbox-toolbar">
+      <div class="lightbox-title" id="lightboxTitle">Sơ đồ</div>
+      <div class="lightbox-actions" aria-label="Điều khiển ảnh">
+        <button type="button" data-zoom="out" title="Thu nhỏ">-</button>
+        <button type="button" data-zoom="reset" title="Vừa màn hình">Fit</button>
+        <button type="button" data-zoom="in" title="Phóng to">+</button>
+        <button type="button" data-close title="Đóng">Đóng</button>
+      </div>
+    </div>
+    <div class="lightbox-stage" id="lightboxStage">
+      <img id="lightboxImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="">
+    </div>
+  </div>
+
+  <script>
+    const lightbox = document.getElementById("imageLightbox");
+    const lightboxImage = document.getElementById("lightboxImage");
+    const lightboxTitle = document.getElementById("lightboxTitle");
+    const lightboxStage = document.getElementById("lightboxStage");
+    let imageScale = 1;
+
+    function setLightboxScale(scale) {
+      imageScale = Math.min(3, Math.max(0.45, scale));
+      lightboxImage.style.transform = `scale(${imageScale})`;
+      lightboxStage.style.placeItems = imageScale > 1 ? "start center" : "center";
+    }
+
+    function openLightbox(img) {
+      const caption = img.closest(".figure")?.querySelector(".caption")?.textContent || img.alt || "Sơ đồ";
+      lightboxImage.src = img.currentSrc || img.src;
+      lightboxImage.alt = img.alt || caption;
+      lightboxTitle.textContent = caption;
+      setLightboxScale(1);
+      lightbox.classList.add("open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      lightbox.setAttribute("aria-hidden", "true");
+      lightboxImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+      document.body.style.overflow = "";
+    }
+
+    document.querySelectorAll(".figure img").forEach((img) => {
+      img.setAttribute("tabindex", "0");
+      img.setAttribute("title", "Click để xem toàn màn hình");
+      img.addEventListener("click", () => openLightbox(img));
+      img.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openLightbox(img);
+        }
+      });
+    });
+
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox || event.target === lightboxStage) {
+        closeLightbox();
+      }
+    });
+
+    document.querySelector("[data-close]").addEventListener("click", closeLightbox);
+
+    document.querySelectorAll("[data-zoom]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const action = button.dataset.zoom;
+        if (action === "in") setLightboxScale(imageScale + 0.2);
+        if (action === "out") setLightboxScale(imageScale - 0.2);
+        if (action === "reset") setLightboxScale(1);
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (!lightbox.classList.contains("open")) return;
+      if (event.key === "Escape") closeLightbox();
+      if (event.key === "+" || event.key === "=") setLightboxScale(imageScale + 0.2);
+      if (event.key === "-") setLightboxScale(imageScale - 0.2);
+      if (event.key === "0") setLightboxScale(1);
+    });
+  </script>
+</body>
+</html>
